@@ -237,9 +237,9 @@ def dense_image_warp(image, flow, name='dense_image_warp'):
     # points in the grid space.
     grid_x, grid_y = array_ops.meshgrid(
         math_ops.range(width), math_ops.range(height))
-    #stacked_grid = math_ops.cast(
-    #    array_ops.stack([grid_y, grid_x], axis=2), flow.dtype)
-    stacked_grid = tf.cast(tf.stack([grid_y, grid_x], axis=2), dtype)
+    stacked_grid = math_ops.cast(
+        array_ops.stack([grid_y, grid_x], axis=2), flow.dtype)
+    #stacked_grid = tf.cast(tf.stack([grid_y, grid_x], axis=2), dtype)
 
     batched_grid = array_ops.expand_dims(stacked_grid, axis=0)
     query_points_on_grid = batched_grid + flow
