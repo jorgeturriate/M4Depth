@@ -169,6 +169,48 @@ class CustomKittiValidationCallback(ks.callbacks.Callback):
         print(save_path + main_command + options + opt_args + "> /dev/null 2>&1 & ")
         os.system(save_path + main_command + options + opt_args + "> /dev/null 2>&1 & ")
 
+class CustomKittiValidationCallback2(ks.callbacks.Callback):
+    ''' Custom callbacks designed to launch validation on the KITTI dataset after each epoch
+    (Modified version)
+    '''
+
+    def __init__(self, cmd_args, args=[]):
+        self.cmd = cmd_args
+        self.args = args
+
+    def on_epoch_end(self, epoch, logs=None):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        working_dir = os.getcwd()
+        rel_path = os.path.relpath(dir_path, start=working_dir)
+        save_path = 'savepath="%s"; ' % self.cmd.ckpt_dir
+        #save_path = f'savepath="{self.cmd.ckpt_dir}"; run_epoch={epoch}; '
+        main_command = "python %s" % os.path.join(rel_path, "main_2.py") + ' --mode=validation ' \
+                                              '--dataset="kitti-raw" ' \
+                                              '--db_path_config=%s ' \
+                                              '--ckpt_dir="$savepath" ' \
+                                              '--records_path=%s ' % (self.cmd.db_path_config, os.path.join(rel_path,"data/kitti-raw-reduced/val_data"))
+        opt_args = ''
+        forbidden_args = ['mode', 'dataset', 'db_path_config', 'ckpt_dir', 'records_path', 'arch_depth', 'seq_len', 'db_seq_len']
+        for key, value in self.cmd.__dict__.items():
+            skip = False
+            for arg in forbidden_args:
+                if key in arg:
+                    skip=True
+
+            if skip:
+                continue
+
+            if isinstance(value, bool) and value:
+                opt_args += '--'+ key + ' '
+            elif value:
+                opt_args += '--' + key + '=' + str(value) + ' '
+
+        options = '--seq_len=4 --db_seq_len=4 --arch_depth=%i ' % (self.cmd.arch_depth)
+        print(save_path + main_command + options + opt_args + "> /dev/null 2>&1 & ")
+        os.system(save_path + main_command + options + opt_args + "> /dev/null 2>&1 & ")
+
+
+
 
 class BestCheckpointManager(object):
     ''' Maintains a backup copy of the top best performing networks according to given performance metrics '''

@@ -1,6 +1,6 @@
 {
   "_comment": "relative paths should be written relative to this file",
   "midair" : "/home/jturriatellallire/datasets/MidAir",
-  "kitti-raw": "./datasets/Kitti",
+  "kitti-raw": "gs://mde_data_bucket/kitti",
   "tartanair": "./datasets/TartanAir"
 }

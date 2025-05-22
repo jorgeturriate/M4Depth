@@ -21,7 +21,9 @@ class DataLoaderKittiRaw(DataLoaderGeneric):
 
     @tf.function
     def _decode_samples(self, data_sample):
-        file = tf.io.read_file(tf.strings.join([self.db_path, data_sample['camera_l']], separator='/'))
+        image_path = tf.strings.join([self.db_path, data_sample['camera_l']], separator='/')
+        file = tf.io.read_file(image_path)
+        #file = tf.io.read_file(tf.strings.join([self.db_path, data_sample['camera_l']], separator='/'))
         image = tf.io.decode_jpeg(file)
         rgb_image = tf.cast(image, dtype=tf.float32)/255.
 
@@ -38,7 +40,9 @@ class DataLoaderKittiRaw(DataLoaderGeneric):
 
         # Load depth data only if they are available
         if 'depth' in data_sample:
-            file = tf.io.read_file(tf.strings.join([self.db_path, data_sample['depth']], separator='/'))
+            depth_path = tf.strings.join([self.db_path, data_sample['depth']], separator='/')
+            file = tf.io.read_file(depth_path)
+            #file = tf.io.read_file(tf.strings.join([self.db_path, data_sample['depth']], separator='/'))
             image = tf.image.decode_png(file, dtype=tf.uint16)
             depth = tf.cast(image, dtype=tf.float32)/256
             out_data['depth'] = tf.reshape(tf.image.resize(depth, self.out_size, method='nearest'), self.out_size+[1])
