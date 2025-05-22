@@ -34,6 +34,11 @@ from m4depth_network import *
 from metrics import *
 import time
 
+
+import wandb
+from wandb.keras import WandbCallback
+
+
 if __name__ == '__main__':
 
     cmdline = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -82,6 +87,7 @@ if __name__ == '__main__':
                         ablation_settings=model_opts.ablation_settings,
                         is_training=True)
 
+
         # Initialize callbacks
         tensorboard_cbk = keras.callbacks.TensorBoard(
             log_dir=cmd.log_dir, histogram_freq=1200, write_graph=True,
@@ -103,10 +109,24 @@ if __name__ == '__main__':
             nbre_epochs = model_checkpoint_cbk.resume_epoch + (20000 // chosen_dataloader.length)
         else:
             nbre_epochs = (220000 // chosen_dataloader.length)
+            
+        #Initialize wandb
+        wandb.init(
+            project="m4depth-midair",  # You can change this to your project name
+            config={
+                "dataset": cmd.dataset,
+                "seq_len": cmd.seq_len,
+                "arch_depth": cmd.arch_depth,
+                "batch_size": cmd.batch_size,
+                "learning_rate": 0.0001,
+                "backbone": "default",  # You can customize this if needed
+                "epochs": nbre_epochs + 1
+            }
+        )
 
         model.fit(data, epochs= nbre_epochs + 1,
                   initial_epoch=model_checkpoint_cbk.resume_epoch,
-                  callbacks=[tensorboard_cbk, model_checkpoint_cbk] + val_cbk)
+                  callbacks=[tensorboard_cbk, model_checkpoint_cbk, WandbCallback()] + val_cbk)
 
     elif cmd.mode == 'eval' or cmd.mode == 'validation':
 
