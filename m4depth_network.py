@@ -206,7 +206,8 @@ class DepthEstimatorLevel(ks.layers.Layer):
             # Reinitialize temporal memory if sample is part of a new sequence
             # Note : sequences are supposed to be synchronized over the whole batch
             if prev_t_depth is None or new_traj[0]:
-                prev_t_depth = tf.ones(self.shape[:3] + [1], dtype='float32') * 1000.
+                #prev_t_depth = tf.ones(self.shape[:3] + [1], dtype='float32') * 1000.
+                prev_t_depth = tf.ones(self.shape[:3] + (1,), dtype='float32') * 1000.
                 if not self.is_training:
                     self.prev_f_maps.assign(curr_f_maps)
                     self.depth_prev_t.assign(prev_t_depth)
