@@ -36,7 +36,8 @@ import time
 
 
 import wandb
-from wandb.keras import WandbCallback
+from wandb.integration.keras import WandbCallback
+
 
 
 if __name__ == '__main__':
@@ -109,7 +110,7 @@ if __name__ == '__main__':
             nbre_epochs = model_checkpoint_cbk.resume_epoch + (20000 // chosen_dataloader.length)
         else:
             nbre_epochs = (220000 // chosen_dataloader.length)
-            
+
         #Initialize wandb
         wandb.init(
             project="m4depth-midair",  # You can change this to your project name
