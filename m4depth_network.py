@@ -359,7 +359,7 @@ class M4Depth(ks.models.Model):
             for sample in traj_samples:
                 f_maps_pyrs.append(self.encoder(sample['RGB_im']))
 
-            d_maps_pyrs = self.d_estimator(f_maps_pyrs, traj_samples, camera, training)
+            d_maps_pyrs = self.d_estimator(f_maps_pyrs, traj_samples, camera, training=training)
 
             if training:
                 return d_maps_pyrs
