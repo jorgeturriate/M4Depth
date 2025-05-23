@@ -126,6 +126,7 @@ if __name__ == '__main__':
         #Initialize wandb
         wandb.init(
             project="m4depth-midair",  # You can change this to your project name
+            name=run_name,
             config={
                 "dataset": cmd.dataset,
                 "seq_len": cmd.seq_len,
@@ -137,11 +138,21 @@ if __name__ == '__main__':
             }
         )
 
-        model.fit(data, epochs= nbre_epochs + 1,
+        """model.fit(data, epochs= nbre_epochs + 1,
                   initial_epoch=model_checkpoint_cbk.resume_epoch,
-                  callbacks=[tensorboard_cbk, model_checkpoint_cbk, WandbCallback()] + val_cbk)
+                  callbacks=[tensorboard_cbk, model_checkpoint_cbk, WandbCallback()] + val_cbk)"""
+        
+        model.fit(data,
+          epochs=nbre_epochs,
+          initial_epoch=model_checkpoint_cbk.resume_epoch,
+          callbacks=[
+              tensorboard_cbk,
+              model_checkpoint_cbk,
+              CustomWandbLoggingCallback(log_every=20)
+          ] + val_cbk)
 
     elif cmd.mode == 'eval' or cmd.mode == 'validation':
+        os.environ['WANDB_MODE'] = 'disabled'
 
         if cmd.mode=="validation":
             weights_dir = os.path.join(ckpt_dir,"train")
