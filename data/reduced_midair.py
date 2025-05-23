@@ -1,4 +1,4 @@
-import os
+"""import os
 import pandas as pd
 
 # === CONFIGURATION ===
@@ -6,7 +6,7 @@ base_dir = "midair/train_data"
 train_dirs = ["Kite_training", "PLE_training"]
 seq_len = 4
 db_seq_len = 8
-stride = 10  # How many frames to skip between sequences
+stride = 8  # How many frames to skip between sequences
 output_suffix = "_reduced"  # Appended to the filename
 
 def reduce_csv_sequence(file_path, seq_len, db_seq_len, stride):
@@ -47,4 +47,34 @@ def main():
                         print(f"Skipped (too short): {csv_path}")
 
 if __name__ == "__main__":
-    main()
+    main()"""
+
+import os
+import pandas as pd
+
+input_root = "midair"
+output_root = "midair-reduced"
+max_frames = 100
+
+for root, _, files in os.walk(input_root):
+    for file in files:
+        if file.endswith(".csv"):
+            input_path = os.path.join(root, file)
+
+            # Ruta relativa y nueva ruta de salida
+            rel_path = os.path.relpath(input_path, input_root)
+            output_path = os.path.join(output_root, rel_path)
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+            # Leer CSV con múltiples espacios como delimitador
+            df = pd.read_csv(input_path, delim_whitespace=True)
+
+            # Truncar y resetear id
+            df_trunc = df.iloc[:max_frames].copy()
+            df_trunc.iloc[:, 0] = range(len(df_trunc))
+
+            # Guardar con separador de espacio
+            df_trunc.to_csv(output_path, sep=' ', index=False)
+
+            print(f"Saved: {output_path}  ({len(df_trunc)} rows)")
+
