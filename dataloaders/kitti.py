@@ -37,9 +37,51 @@ class DataLoaderKittiRaw(DataLoaderGeneric):
             img_bytes = f.read()
         image = tf.image.decode_png(img_bytes, dtype=tf.uint16)
         return image
+    
+    def _decode_samples_py(self, data_sample):
+        camera_l = data_sample['camera_l'].numpy().decode()
+        image_path = f"{self.db_path}/{camera_l}"
+        image = self._read_image_gcs(image_path)
+        rgb_image = tf.cast(image, dtype=tf.float32) / 255.
+
+        camera_data = {
+            "f": tf.convert_to_tensor([data_sample['fx'].numpy()*self.out_size[1],
+                                    data_sample['fy'].numpy()*self.out_size[0]], dtype=tf.float32),
+            "c": tf.convert_to_tensor([data_sample['cx'].numpy()*self.out_size[1],
+                                    data_sample['cy'].numpy()*self.out_size[0]], dtype=tf.float32),
+        }
+
+        out_data = {
+            "camera": camera_data,
+            "RGB_im": tf.image.resize(rgb_image, self.out_size)
+        }
+
+        out_data["rot"] = tf.convert_to_tensor(
+            [data_sample['qw'].numpy(), data_sample['qx'].numpy(),
+            data_sample['qy'].numpy(), data_sample['qz'].numpy()],
+            dtype=tf.float32
+        )
+
+        out_data["trans"] = tf.convert_to_tensor(
+            [data_sample['tx'].numpy(), data_sample['ty'].numpy(), data_sample['tz'].numpy()],
+            dtype=tf.float32
+        )
+
+        out_data["new_traj"] = data_sample["id"].numpy() == 0
+
+        if 'depth' in data_sample:
+            depth_path = f"{self.db_path}/data_depth_annotated/{data_sample['depth'].numpy().decode()}"
+            depth = self._read_depth_gcs(depth_path)
+            depth = tf.cast(depth, dtype=tf.float32) / 256.
+            depth = tf.image.resize(depth[..., tf.newaxis], self.out_size, method='nearest')
+            if self.usecase == "eval":
+                depth *= self.eval_crop_mask
+            out_data['depth'] = depth
+
+        return out_data
 
     #@tf.function
-    def _decode_samples(self, data_sample):
+    """def _decode_samples(self, data_sample):
         #image_path = tf.strings.join([self.db_path, data_sample['camera_l']], separator='/')
         image_path = f"{self.db_path}/{data_sample['camera_l'].numpy().decode()}"
         image = self._read_image_gcs(image_path)
@@ -74,7 +116,27 @@ class DataLoaderKittiRaw(DataLoaderGeneric):
             if self.usecase=="eval":
                 out_data['depth'] = out_data['depth'] * self.eval_crop_mask
 
+        return out_data"""
+    
+    def _decode_samples(self, data_sample):
+        out_data = tf.py_function(
+            func=self._decode_samples_py,
+            inp=[data_sample],
+            Tout={
+                "camera": tf.float32,
+                "RGB_im": tf.float32,
+                "rot": tf.float32,
+                "trans": tf.float32,
+                "new_traj": tf.bool,
+                "depth": tf.float32 if 'depth' in data_sample else tf.float32
+            }
+        )
+
+        out_data["RGB_im"].set_shape(self.out_size + [3])
+        out_data["depth"].set_shape(self.out_size + [1])
+        out_data["camera"]["f"].set_shape([2])
         return out_data
+
 
     def _perform_augmentation(self):
         #self._augmentation_step_flip()
