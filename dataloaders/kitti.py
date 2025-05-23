@@ -40,8 +40,8 @@ class DataLoaderKittiRaw(DataLoaderGeneric):
 
     #@tf.function
     def _decode_samples(self, data_sample):
-        image_path = tf.strings.join([self.db_path, data_sample['camera_l']], separator='/')
-        #image_path = f"{self.db_path}/{data_sample['camera_l'].numpy().decode()}"
+        #image_path = tf.strings.join([self.db_path, data_sample['camera_l']], separator='/')
+        image_path = f"{self.db_path}/{data_sample['camera_l'].numpy().decode()}"
         image = self._read_image_gcs(image_path)
         #file = tf.io.read_file(image_path)
         #file = tf.io.read_file(tf.strings.join([self.db_path, data_sample['camera_l']], separator='/'))
@@ -61,8 +61,8 @@ class DataLoaderKittiRaw(DataLoaderGeneric):
 
         # Load depth data only if they are available
         if 'depth' in data_sample:
-            depth_path = tf.strings.join([self.db_path,"data_depth_annotated" ,data_sample['depth']], separator='/')
-            #depth_path = f"{self.db_path}/data_depth_annotated/{data_sample['depth'].numpy().decode()}"
+            #depth_path = tf.strings.join([self.db_path,"data_depth_annotated" ,data_sample['depth']], separator='/')
+            depth_path = f"{self.db_path}/data_depth_annotated/{data_sample['depth'].numpy().decode()}"
             #file = tf.io.read_file(depth_path)
             depth = self._read_depth_gcs(depth_path)
             #file = tf.io.read_file(tf.strings.join([self.db_path, data_sample['depth']], separator='/'))
