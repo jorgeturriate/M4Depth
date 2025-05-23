@@ -37,6 +37,18 @@ import time
 
 import wandb
 from wandb.integration.keras import WandbCallback
+from datetime import datetime
+run_name = f"train_{cmd.dataset}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+
+class CustomWandbLoggingCallback(tf.keras.callbacks.Callback):
+    def __init__(self, log_every=20):
+        self.log_every = log_every
+        self.step = 0
+
+    def on_train_batch_end(self, batch, logs=None):
+        self.step += 1
+        if self.step % self.log_every == 0:
+            wandb.log({f"train/{k}": v for k, v in logs.items()}, step=self.step)
 
 
 
