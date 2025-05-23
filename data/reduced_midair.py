@@ -49,7 +49,7 @@ def main():
 if __name__ == "__main__":
     main()"""
 
-import os
+"""import os
 import pandas as pd
 
 input_root = "midair"
@@ -76,5 +76,31 @@ for root, _, files in os.walk(input_root):
             # Guardar con separador de espacio
             df_trunc.to_csv(output_path, sep=' ', index=False)
 
-            print(f"Saved: {output_path}  ({len(df_trunc)} rows)")
+            print(f"Saved: {output_path}  ({len(df_trunc)} rows)")"""
+
+import os
+
+input_root = "midair"
+output_root = "midair_reduced"
+max_lines = 101  # 1 header + 100 frames
+
+for root, _, files in os.walk(input_root):
+    for file in files:
+        if file.endswith(".csv"):
+            input_path = os.path.join(root, file)
+
+            # Ruta relativa para reconstruir estructura
+            rel_path = os.path.relpath(input_path, input_root)
+            output_path = os.path.join(output_root, rel_path)
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+            # Leer y escribir las primeras 101 líneas
+            with open(input_path, "r") as infile:
+                lines = infile.readlines()
+
+            with open(output_path, "w") as outfile:
+                outfile.writelines(lines[:max_lines])
+
+            print(f"Saved: {output_path} ({min(len(lines)-1, 100)} frames)")
+
 
