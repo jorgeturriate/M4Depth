@@ -120,7 +120,7 @@ if __name__ == '__main__':
         curriculum = CurriculumLearnerM4DepthStep(
             model,
             dataset_list=all_possible_samples,
-            model_ckpt_path=os.path.join(ckpt_dir, "best", "ckpt"),
+            model_ckpt_path=os.path.join("/home/jturriatellallire/M4Depth/pretrained_weights/midair/best/","cp-0071.ckpt"),
             pacing_function=cmd.pacing_function,
             total_steps=total_steps,
             a=cmd.a,
