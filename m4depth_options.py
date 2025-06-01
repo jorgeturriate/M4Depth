@@ -59,6 +59,22 @@ class M4DepthOptions:
         args.add_argument('--keep_top_n',
                           default=1, type=int,
                           help="""Amount of top performing checkpoints to keep.""")
+        
+        # CL options
+        args.add_argument('--a',
+                          default=0.4, type=float,
+                          help="""Pacing function's scaling factor""")
+        args.add_argument('--b',
+                          default=0.2, type=float,
+                          help="""fraction of the full training data used initially""")
+        args.add_argument('--p',
+                          default=1, type=int,
+                          help="""used in quadratic pacing function to control the exponent""")
+        
+        args.add_argument('--pacing_function',
+                          type=str, help="used to define the pacing function",
+                          default="linear",
+                          choices=["linear", "quadratic","exponential","logarithmic","step"])
 
         # Ablation Options
         args.add_argument('--arch_depth',

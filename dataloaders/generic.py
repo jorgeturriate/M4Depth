@@ -154,6 +154,27 @@ class DataLoaderGeneric():
         for key, tensor in data_sample.items():
             out_data[key] = tf.slice(tensor, [offset], [self.seq_len])
         return out_data
+    
+    def get_all_possible_samples(self):
+        """
+        Output a tf.data.Dataset with all the possible samples from the dataset,
+       without batching, shuffle or augmentation.
+
+        Each element is decoded using `_decode_samples`,
+        but there is not random transformation.
+        """
+        # Get the trajectories
+        trajectories = self._get_trajectories()
+
+        # Concatenate all the trajectories into one
+        full_dataset = trajectories[0]
+        for traj in trajectories[1:]:
+            full_dataset = full_dataset.concatenate(traj)
+
+        # Decode the csv line into one useful sample
+        full_dataset = full_dataset.map(self._decode_samples, num_parallel_calls=tf.data.AUTOTUNE)
+
+        return full_dataset
 
 
     @tf.function
