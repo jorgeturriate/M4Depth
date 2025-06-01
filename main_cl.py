@@ -38,7 +38,7 @@ import time
 import wandb
 from wandb.integration.keras import WandbCallback
 from datetime import datetime
-run_name = f"train_{cmd.dataset}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+run_name = f"train_{cmd.dataset}_pacing{cmd.pacing_function}_a{cmd.a}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
 
 class CustomWandbLoggingCallback(tf.keras.callbacks.Callback):
     def __init__(self, log_every=20):
