@@ -38,32 +38,30 @@ class CurriculumLearnerM4DepthStep:
             raise FileNotFoundError(f"Score file {path} not found. Run score_all_samples_and_save() first.")
         scores = np.load(path)
         self.sorted_samples = sorted(zip(scores, self.dataset_list), key=lambda x: x[0])
-
-    def merge_sequence_to_input_dict(self, sequence):
+    
+    def merge_sequence_to_input_dict(sequence):
         """
-        Convert a list of frame dictionaries into a single dict
-        with each value stacked along the time axis.
+        Convert a list of frame dictionaries into a model-ready input dict
+        by stacking values and skipping non-array entries (e.g., 'camera', 'new_traj', 'depth').
         """
         input_dict = {}
         for key in sequence[0].keys():
-            if key == "depth":
-                continue  # exclude ground-truth from input
-            input_dict[key] = np.stack([frame[key] for frame in sequence], axis=0)  # shape: (T, H, W, C)
+            if key in ["depth", "camera", "new_traj"]:
+                continue  # Exclude non-input fields
+            values = [frame[key] for frame in sequence]
+            if isinstance(values[0], np.ndarray):
+                input_dict[key] = np.stack(values, axis=0)  # shape: (T, ...)
         return input_dict
-    
+
 
     def score_sample(self, sample):
         traj_sample = sample["traj"] #list of 4 dicts
-
-
         camera_input = sample["camera"]
 
         model_input = self.merge_sequence_to_input_dict(traj_sample)
 
-        # predict expects a batch -> add batch dim
-        for key in model_input:
-            model_input[key] = np.expand_dims(model_input[key], axis=0)  # shape: (1, T, H, W, C)
-
+        # Add batch dimension
+        model_input = {k: np.expand_dims(v, axis=0) for k, v in model_input.items()}
         camera_input = {k: np.expand_dims(v, axis=0) for k, v in camera_input.items()}
 
         print({k: v.shape for k, v in model_input.items()})
