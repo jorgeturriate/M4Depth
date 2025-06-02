@@ -477,6 +477,8 @@ class M4Depth(ks.models.Model):
     @tf.function
     def predict_step(self, data):
         # expects one sequence element at a time (batch dim is required and is free to be set)"
+        print(">>> predict_step: type(data) =", type(data))
+        print(">>> predict_step: data =", data)
         preds = self([[data], data["camera"]], training=False)
 
         with tf.name_scope("metrics"):
