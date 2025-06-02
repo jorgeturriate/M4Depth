@@ -38,35 +38,28 @@ class CurriculumLearnerM4DepthStep:
             raise FileNotFoundError(f"Score file {path} not found. Run score_all_samples_and_save() first.")
         scores = np.load(path)
         self.sorted_samples = sorted(zip(scores, self.dataset_list), key=lambda x: x[0])
-    
-    def merge_sequence_to_input_dict(self,sequence):
-        """
-        Convert a list of frame dictionaries into a model-ready input dict
-        by stacking values and skipping non-array entries (e.g., 'camera', 'new_traj', 'depth').
-        """
-        input_dict = {}
-        for key in sequence[0].keys():
-            if key in ["depth", "camera", "new_traj"]:
-                continue  # Exclude non-input fields
-            values = [frame[key] for frame in sequence]
-            if isinstance(values[0], np.ndarray):
-                input_dict[key] = np.stack(values, axis=0)  # shape: (T, ...)
-        return input_dict
-
 
     def score_sample(self, sample):
         traj_sample = sample["traj"] #list of 4 dicts
         camera_input = sample["camera"]
 
-        model_input = self.merge_sequence_to_input_dict(traj_sample)
+        # Add batch dimension to all inputs
+        model_input = {
+            "RGB_im": np.expand_dims(traj_sample["RGB_im"], axis=0),     # shape (1, 4, H, W, 3)
+            "rot": np.expand_dims(traj_sample["rot"], axis=0),           # shape (1, 4, 4)
+            "trans": np.expand_dims(traj_sample["trans"], axis=0),       # shape (1, 4, 3)
+            "new_traj": np.expand_dims(traj_sample["new_traj"], axis=0)  # shape (1, 4)
+        }
 
-        # Add batch dimension
-        model_input = {k: np.expand_dims(v, axis=0) for k, v in model_input.items()}
-        camera_input = {k: np.expand_dims(v, axis=0) for k, v in camera_input.items()}
+        camera_input = {
+            "f": np.expand_dims(camera_input["f"], axis=0),  # shape (1, 2)
+            "c": np.expand_dims(camera_input["c"], axis=0)   # shape (1, 2)
+        }
 
-        print({k: v.shape for k, v in model_input.items()})
-        print({k: v.shape for k, v in camera_input.items()})
-        pred = self.model.predict([model_input, camera_input], verbose=0)
+        # Merge into a single dict, as expected by predict_step()
+        model_input["camera"] = camera_input
+
+        pred = self.model.predict(model_input, verbose=0)
 
         target = np.expand_dims(traj_sample[-1]["depth"], axis=0)  # shape: (1, H, W, 1)
         loss = np.mean((target - pred["depth"]) ** 2)
