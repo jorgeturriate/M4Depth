@@ -39,18 +39,39 @@ class CurriculumLearnerM4DepthStep:
         scores = np.load(path)
         self.sorted_samples = sorted(zip(scores, self.dataset_list), key=lambda x: x[0])
 
+    def merge_sequence_to_input_dict(self, sequence):
+        """
+        Convert a list of frame dictionaries into a single dict
+        with each value stacked along the time axis.
+        """
+        input_dict = {}
+        for key in sequence[0].keys():
+            if key == "depth":
+                continue  # exclude ground-truth from input
+            input_dict[key] = np.stack([frame[key] for frame in sequence], axis=0)  # shape: (T, H, W, C)
+        return input_dict
+    
+
     def score_sample(self, sample):
         traj_sample = sample["traj"] #list of 4 dicts
 
 
         camera_input = sample["camera"]
 
-        # Prediction
-        pred = self.model.predict([traj_sample, camera_input], verbose=0)
+        model_input = self.merge_sequence_to_input_dict(traj_sample)
 
-        # Target = depth of the last frame
-        target = tf.expand_dims(traj_sample[-1]["depth"], axis=0)  # shape: (1, H, W, 1)
-        loss = tf.reduce_mean(tf.square(target - pred["depth"])).numpy()
+        # predict expects a batch -> add batch dim
+        for key in model_input:
+            model_input[key] = np.expand_dims(model_input[key], axis=0)  # shape: (1, T, H, W, C)
+
+        camera_input = {k: np.expand_dims(v, axis=0) for k, v in camera_input.items()}
+
+        print({k: v.shape for k, v in model_input.items()})
+        print({k: v.shape for k, v in camera_input.items()})
+        pred = self.model.predict([model_input, camera_input], verbose=0)
+
+        target = np.expand_dims(traj_sample[-1]["depth"], axis=0)  # shape: (1, H, W, 1)
+        loss = np.mean((target - pred["depth"]) ** 2)
         return loss
 
     def score_all_samples_and_save(self):
