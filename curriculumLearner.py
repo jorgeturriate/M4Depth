@@ -39,7 +39,7 @@ class CurriculumLearnerM4DepthStep:
         scores = np.load(path)
         self.sorted_samples = sorted(zip(scores, self.dataset_list), key=lambda x: x[0])
     
-    def merge_sequence_to_input_dict(sequence):
+    def merge_sequence_to_input_dict(self,sequence):
         """
         Convert a list of frame dictionaries into a model-ready input dict
         by stacking values and skipping non-array entries (e.g., 'camera', 'new_traj', 'depth').
