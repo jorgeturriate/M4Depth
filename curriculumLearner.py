@@ -49,8 +49,13 @@ class CurriculumLearnerM4DepthStep:
         }
         
         input_data = [[traj_sample], sample["camera"]]
-        print(f"Input data shape: {input_data.shape}")
         
+        #DEBUG
+        print(f"Type of input_data: {type(input_data)}")
+        print(f"Length of input_data: {len(input_data)}")
+        print(f"Type of input_data[0]: {type(input_data[0])}")  # debe ser una lista o np array
+        print(f"Type of input_data[1]: {type(input_data[1])}")
+
         pred = self.model.predict(input_data, verbose=0)
         target = tf.expand_dims(sample['depth'], axis=0)
         loss = tf.reduce_mean(tf.square(target - pred["depth"])).numpy()
