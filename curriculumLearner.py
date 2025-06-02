@@ -68,8 +68,9 @@ class CurriculumLearnerM4DepthStep:
         #model_input["camera"] = camera_input
 
 
-        #print({k: v for k, v in model_input.items()})
-        pred = self.model.predict(([model_input],camera_input), verbose=0)
+        print({k: v.shape for k, v in model_input.items()})
+        print({k: v.shape for k, v in camera_input.items()})
+        pred = self.model.predict((model_input,camera_input), verbose=0)
 
         target = np.expand_dims(traj_sample[-1]["depth"], axis=0)  # shape: (1, H, W, 1)
         loss = np.mean((target - pred["depth"]) ** 2)
