@@ -40,9 +40,18 @@ class CurriculumLearnerM4DepthStep:
         self.sorted_samples = sorted(zip(scores, self.dataset_list), key=lambda x: x[0])
 
     def score_sample(self, sample):
-        pred = self.model.predict(tf.expand_dims(sample['RGB_im'], axis=0), verbose=0)
+        traj_sample = {
+            "RGB_im": sample["RGB_im"],
+            "depth": sample["depth"],
+            "new_traj": sample["new_traj"],
+            "rot": sample["rot"],
+            "trans": sample["trans"]
+        }
+        
+        input_data = [[traj_sample], sample["camera"]]
+        pred = self.model.predict(input_data, verbose=0)
         target = tf.expand_dims(sample['depth'], axis=0)
-        loss = tf.reduce_mean(tf.square(target - pred)).numpy()
+        loss = tf.reduce_mean(tf.square(target - pred["depth"])).numpy()
         return loss
 
     def score_all_samples_and_save(self):
