@@ -43,13 +43,13 @@ class CurriculumLearnerM4DepthStep:
         traj_sample = [{
             "RGB_im": sample["RGB_im"][0],      # (384, 384, 3)
             "depth": sample["depth"][0],        # (384, 384, 1)
-            "new_traj": sample["new_traj"][0],  # bool
+            "new_traj": sample["new_traj"],  # bool
             "rot": sample["rot"][0],            # (4,)
             "trans": sample["trans"][0],        # (3,)
         }]
 
 
-        camera_input = sample["camera"][0]
+        camera_input = sample["camera"]
 
         print(type(sample["RGB_im"]), sample["RGB_im"].shape)
         # Prediction
