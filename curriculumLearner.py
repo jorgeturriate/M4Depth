@@ -66,6 +66,8 @@ class CurriculumLearnerM4DepthStep:
             return
 
         for sample in self.dataset_list:
+            print("RGB shape:", sample["RGB_im"].shape)
+            print("Keys:", sample.keys())
             score = self.score_sample(sample)
             self.scored_dataset.append((score, sample))
         self.sorted_samples = sorted(self.scored_dataset, key=lambda x: x[0])
