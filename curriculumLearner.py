@@ -47,16 +47,19 @@ class CurriculumLearnerM4DepthStep:
             "rot": sample["rot"],
             "trans": sample["trans"]
         }
-        
-        input_data = [[traj_sample], sample["camera"]]
-        
-        #DEBUG
-        print(f"Type of input_data: {type(input_data)}")
-        print(f"Length of input_data: {len(input_data)}")
-        print(f"Type of input_data[0]: {type(input_data[0])}")  # debe ser una lista o np array
-        print(f"Type of input_data[1]: {type(input_data[1])}")
+
+        # Asegurar batch dimension
+        traj_input = [traj_sample]
+        camera_input = np.expand_dims(sample["camera"], axis=0)
+
+        input_data = [traj_input, camera_input]
+
+        # Debug detallado
+        print(f"traj_input type: {type(traj_input)}, len: {len(traj_input)}")
+        print(f"camera_input shape: {camera_input.shape}")
 
         pred = self.model.predict(input_data, verbose=0)
+
         target = tf.expand_dims(sample['depth'], axis=0)
         loss = tf.reduce_mean(tf.square(target - pred["depth"])).numpy()
         return loss
