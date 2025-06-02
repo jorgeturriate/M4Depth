@@ -66,8 +66,9 @@ class CurriculumLearnerM4DepthStep:
         camera_input = {k: np.expand_dims(v, axis=0) for k, v in camera_input.items()}
 
         # Merge into a single dict, as expected by predict_step()
-        model_input["camera"] = camera_input
+        model_input.update(camera_input)
 
+        print("Final input keys:", model_input.keys())
         pred = self.model.predict(model_input, verbose=0)
 
         target = np.expand_dims(traj_sample[-1]["depth"], axis=0)  # shape: (1, H, W, 1)
