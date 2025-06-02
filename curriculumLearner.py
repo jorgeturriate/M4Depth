@@ -40,32 +40,20 @@ class CurriculumLearnerM4DepthStep:
         self.sorted_samples = sorted(zip(scores, self.dataset_list), key=lambda x: x[0])
 
     def score_sample(self, sample):
-        traj_sample = {
-            "RGB_im": sample["RGB_im"],
-            "depth": sample["depth"],
-            "new_traj": sample["new_traj"],
-            "rot": sample["rot"],
-            "trans": sample["trans"]
-        }
+        traj_sample = [{
+            "RGB_im": sample["RGB_im"][0],      # (384, 384, 3)
+            "depth": sample["depth"][0],        # (384, 384, 1)
+            "new_traj": sample["new_traj"][0],  # bool
+            "rot": sample["rot"][0],            # (4,)
+            "trans": sample["trans"][0],        # (3,)
+        }]
 
-        # Convertimos cada valor del diccionario en un tensor con batch dimension
-        traj_input = {
-            key: np.expand_dims(np.array(value), axis=0)
-            for key, value in traj_sample.items()
-        }
 
-        camera_input = np.expand_dims(np.array(sample["camera"]), axis=0)
+        camera_input = sample["camera"][0]
 
-        input_data = [traj_input, camera_input]
-
-        # Debug
-        print("Shapes of traj_input:")
-        for k, v in traj_input.items():
-            print(f"  {k}: {v.shape}, dtype: {v.dtype}")
-        print(f"camera_input shape: {camera_input.shape}, dtype: {camera_input.dtype}")
-
+        print(type(sample["RGB_im"]), sample["RGB_im"].shape)
         # Prediction
-        pred = self.model.predict(input_data, verbose=0)
+        pred = self.model.predict([traj_sample, camera_input], verbose=0)
 
         target = tf.expand_dims(sample['depth'], axis=0)
         loss = tf.reduce_mean(tf.square(target - pred["depth"])).numpy()
