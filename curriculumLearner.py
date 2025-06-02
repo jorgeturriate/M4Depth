@@ -49,6 +49,8 @@ class CurriculumLearnerM4DepthStep:
         }
         
         input_data = [[traj_sample], sample["camera"]]
+        print(f"Input data shape: {input_data.shape}")
+        
         pred = self.model.predict(input_data, verbose=0)
         target = tf.expand_dims(sample['depth'], axis=0)
         loss = tf.reduce_mean(tf.square(target - pred["depth"])).numpy()
