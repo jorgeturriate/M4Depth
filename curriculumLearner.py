@@ -48,16 +48,23 @@ class CurriculumLearnerM4DepthStep:
             "trans": sample["trans"]
         }
 
-        # Asegurar batch dimension
-        traj_input = [traj_sample]
-        camera_input = np.expand_dims(sample["camera"], axis=0)
+        # Convertimos cada valor del diccionario en un tensor con batch dimension
+        traj_input = {
+            key: np.expand_dims(np.array(value), axis=0)
+            for key, value in traj_sample.items()
+        }
+
+        camera_input = np.expand_dims(np.array(sample["camera"]), axis=0)
 
         input_data = [traj_input, camera_input]
 
-        # Debug detallado
-        print(f"traj_input type: {type(traj_input)}, len: {len(traj_input)}")
-        print(f"camera_input shape: {camera_input.shape}")
+        # Debug
+        print("Shapes of traj_input:")
+        for k, v in traj_input.items():
+            print(f"  {k}: {v.shape}, dtype: {v.dtype}")
+        print(f"camera_input shape: {camera_input.shape}, dtype: {camera_input.dtype}")
 
+        # Prediction
         pred = self.model.predict(input_data, verbose=0)
 
         target = tf.expand_dims(sample['depth'], axis=0)
