@@ -157,24 +157,30 @@ class DataLoaderGeneric():
     
     def get_all_possible_samples(self):
         """
-        Output a tf.data.Dataset with all the possible samples from the dataset,
-       without batching, shuffle or augmentation.
-
-        Each element is decoded using `_decode_samples`,
-        but there is not random transformation.
+        Returns a list of all possible trajectory samples (sequences of length `seq_len`)
+        as dictionaries, without batching or augmentation.
         """
-        # Get the trajectories
         trajectories = self._get_trajectories()
 
-        # Concatenate all the trajectories into one
-        full_dataset = trajectories[0]
-        for traj in trajectories[1:]:
-            full_dataset = full_dataset.concatenate(traj)
+        all_samples = []
 
-        # Decode the csv line into one useful sample
-        full_dataset = full_dataset.map(self._decode_samples, num_parallel_calls=tf.data.AUTOTUNE)
+        for traj in trajectories:
+            traj_dataset = traj.map(self._decode_samples, num_parallel_calls=tf.data.AUTOTUNE)
+            traj_data = list(traj_dataset.as_numpy_iterator())
 
-        return full_dataset
+            for i in range(len(traj_data) - self.seq_len + 1):
+                traj_sample = traj_data[i : i + self.seq_len]
+
+                # Group as a single dict with all needed info
+                # This mimics the structure used in model.fit
+                grouped_sample = {
+                    "traj": traj_sample,  # list of 4 dicts
+                    "camera": traj_sample[0]["camera"],  # constant across sequence
+                }
+
+                all_samples.append(grouped_sample)
+
+        return all_samples
 
 
     @tf.function

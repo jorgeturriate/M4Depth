@@ -40,22 +40,16 @@ class CurriculumLearnerM4DepthStep:
         self.sorted_samples = sorted(zip(scores, self.dataset_list), key=lambda x: x[0])
 
     def score_sample(self, sample):
-        traj_sample = [{
-            "RGB_im": sample["RGB_im"][0],      # (384, 384, 3)
-            "depth": sample["depth"][0],        # (384, 384, 1)
-            "new_traj": sample["new_traj"],  # bool
-            "rot": sample["rot"][0],            # (4,)
-            "trans": sample["trans"][0],        # (3,)
-        }]
+        traj_sample = sample["traj"] #list of 4 dicts
 
 
         camera_input = sample["camera"]
 
-        print(type(sample["RGB_im"]), sample["RGB_im"].shape)
         # Prediction
         pred = self.model.predict([traj_sample, camera_input], verbose=0)
 
-        target = tf.expand_dims(sample['depth'], axis=0)
+        # Target = depth of the last frame
+        target = tf.expand_dims(traj_sample[-1]["depth"], axis=0)  # shape: (1, H, W, 1)
         loss = tf.reduce_mean(tf.square(target - pred["depth"])).numpy()
         return loss
 
@@ -66,8 +60,8 @@ class CurriculumLearnerM4DepthStep:
             return
 
         for sample in self.dataset_list:
-            print("RGB shape:", sample["RGB_im"].shape)
-            print("Keys:", sample.keys())
+            #print("RGB shape:", sample["RGB_im"].shape)
+            #print("Keys:", sample.keys())
             score = self.score_sample(sample)
             self.scored_dataset.append((score, sample))
         self.sorted_samples = sorted(self.scored_dataset, key=lambda x: x[0])
